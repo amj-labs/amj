@@ -1,0 +1,13 @@
+[package]
+name = "amj-cli"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "amj"
+path = "src/main.rs"
+
+[dependencies]
+amj-core = { path = "../core" }
+amj-runtime = { path = "../runtime" }
+amj-policy = { path = "../policy" }

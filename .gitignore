@@ -1,0 +1,42 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ML artifacts
+models/
+checkpoints/
+datasets/raw/
+*.pt
+*.pth
+*.safetensors
+
+# Environment / secrets
+.env
+.env.*
+secrets/
+*.key
+*.pem
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / runtime
+logs/
+tmp/
+*.log
