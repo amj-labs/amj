@@ -31,3 +31,28 @@ jobs:
 
       - name: Run tests
         run: cargo test --workspace
+
+  week1:
+    name: Week 1 / ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [sys, sec, ml, ml-sec]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install acceptance-test dependencies
+        run: python -m pip install -r tests/week1/requirements.txt
+
+      - name: Run completion gate
+        run: python tests/week1/run.py ${{ matrix.suite }}

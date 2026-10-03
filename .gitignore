@@ -1,5 +1,6 @@
 # Rust
 /target/
+/tests/week1/*/target/
 **/*.rs.bk
 
 # Python

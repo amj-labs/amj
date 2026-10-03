@@ -1,0 +1,14 @@
+[package]
+name = "amj-sec-acceptance"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+amj-core = { path = "../../../crates/core" }
+
+[[bin]]
+name = "capability-probe"
+path = "src/main.rs"

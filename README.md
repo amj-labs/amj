@@ -4,7 +4,7 @@
 
 AMJ is a local-first security runtime designed to execute autonomous AI agents with the minimum capabilities required for their current task.
 
-Instead of granting agents broad access to the host system, AMJ combines deterministic security policies with task and behavioral analysis to decide whether an action should be:
+AMJ is intended to combine deterministic security policies with task and behavioral analysis to decide whether an action should be:
 
 - automatically allowed,
 - automatically denied,
@@ -12,6 +12,12 @@ Instead of granting agents broad access to the host system, AMJ combines determi
 - considered severe enough to terminate the session.
 
 Machine-learning components may assist with task understanding, risk assessment, capability inference, and anomaly detection, but they never override deterministic security boundaries.
+
+## Current status
+
+AMJ is in early development. The repository currently contains a Rust workspace
+scaffold, and the CLI prints an introductory banner. Runtime enforcement and ML
+components are planned.
 
 ## Core goals
 
@@ -43,3 +49,26 @@ amj/
 │   └── adr/
 ├── scripts/
 └── tests/
+```
+
+Rust (edition 2024) is used for the runtime and security components. Python is
+planned for ML components. Linux is the first supported platform. See the
+[initial architecture decision](docs/adr/0001-initial-architecture.md).
+
+## Getting started
+
+On Linux with Rust stable, run from the repository root:
+
+```bash
+cargo build --workspace
+cargo run -p amj-cli
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and
+contribution checks.
+
+## License
+
+[Apache License 2.0](LICENSE).

@@ -1,0 +1,15 @@
+[package]
+name = "amj-sys-acceptance"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+# Separate workspace: unfinished task APIs must not break other engineers' tests.
+[workspace]
+
+[dependencies]
+amj-runtime = { path = "../../../crates/runtime" }
+
+[[test]]
+name = "session"
+path = "tests/session.rs"

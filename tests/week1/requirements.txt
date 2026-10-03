@@ -1,0 +1,2 @@
+# Test dependency only; production dataset validation remains ML-001's work.
+jsonschema>=4.19,<5
