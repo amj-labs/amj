@@ -1,4 +1,4 @@
-"""Structural checks only; threat-model correctness still requires human review."""
+"""Security: structural checks; threat-model correctness needs human review."""
 import re
 import unittest
 

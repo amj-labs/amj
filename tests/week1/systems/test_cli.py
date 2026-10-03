@@ -1,4 +1,4 @@
-"""SYS-001 CLI-to-runtime behavior, on Linux without sandbox expectations."""
+"""Systems: SYS-001 CLI-to-runtime behavior on Linux."""
 import json
 from pathlib import Path
 import sys

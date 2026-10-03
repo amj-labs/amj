@@ -12,26 +12,27 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("suite", choices=("sys", "sec", "ml", "ml-sec", "all"))
     args = parser.parse_args()
-    def python_tests(name):
+    def python_tests(domain, name):
         return [
-            sys.executable, "-m", "unittest", "discover", "-s", str(HERE / "python"),
+            sys.executable, "-m", "unittest", "discover", "-s", str(HERE / domain),
+            "-t", str(HERE),
             "-p", f"test_{name}.py", "-v",
         ]
     security_manifest = str(HERE / "security/Cargo.toml")
     commands = {
         "sys": [
             ["cargo", "build", "-p", "amj-cli"],
-            python_tests("sys"),
+            python_tests("systems", "cli"),
             ["cargo", "test", "--manifest-path", str(HERE / "systems/Cargo.toml")],
         ],
         "sec": [
-            python_tests("sec"),
+            python_tests("security", "threat_model"),
             ["cargo", "test", "--manifest-path", security_manifest],
         ],
-        "ml": [python_tests("ml")],
+        "ml": [python_tests("ml", "dataset")],
         "ml-sec": [
             ["cargo", "build", "--manifest-path", security_manifest, "--bin", "capability-probe"],
-            python_tests("ml_sec"),
+            python_tests("integration", "ml_security"),
         ],
     }
     failed = False

@@ -6,6 +6,18 @@ APIs, and unimplemented behavior are failures, never skips or expected passes.
 No production runtime, security primitives, threat model, schema, validator,
 or training examples are implemented here.
 
+Tests are grouped by domain:
+
+```text
+tests/week1/
+├── systems/       # CLI tests and Rust session tests
+├── security/      # Threat-model tests, Rust primitives, and test bridge
+├── ml/            # Schema, dataset, and validator tests
+├── integration/   # ML ↔ Security compatibility tests
+├── common.py      # Shared test helpers
+└── run.py         # Test runner used locally and in CI
+```
+
 Run from the repository root (Linux, Rust stable, Python 3.12+):
 
 ```bash

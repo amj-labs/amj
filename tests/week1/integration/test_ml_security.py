@@ -1,4 +1,4 @@
-"""Real Week 1 interface: committed ML records must map to actual core types."""
+"""ML ↔ Security: committed ML records must map to actual core types."""
 import unittest
 
 from common import ROOT, load_dataset, run
