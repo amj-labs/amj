@@ -8,7 +8,7 @@ import sys
 
 from jsonschema import validators
 
-from common import DATASET, load_dataset, run
+from common import DATASET, describe, load_dataset, run
 
 
 FIELDS = ("id", "task", "category", "expected_capabilities", "forbidden_capabilities", "risk", "notes")
@@ -40,7 +40,8 @@ class MLDataset(unittest.TestCase):
         self.assertGreaterEqual(len(self.records), 50)
         ids, tasks, categories, risks = set(), set(), set(), set()
         for index, record in enumerate(self.records, 1):
-            with self.subTest(line=index):
+            with self.subTest(file="ml/datasets/examples.jsonl", line=index,
+                              example_id=record.get("id") if isinstance(record, dict) else None):
                 self.validator.validate(record)
                 for field in FIELDS:
                     self.assertIn(field, record)
@@ -99,7 +100,7 @@ class MLDataset(unittest.TestCase):
 
     def test_engineer_validator_accepts_committed_dataset(self):
         result = self.validate_file(DATASET / "examples.jsonl")
-        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.returncode, 0, describe(result))
 
     def test_engineer_validator_rejects_bad_records_including_later_lines(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -108,14 +109,17 @@ class MLDataset(unittest.TestCase):
                 with self.subTest(case=name):
                     path.write_text(json.dumps(self.records[0]) + "\n" + json.dumps(record) + "\n")
                     result = self.validate_file(path)
-                    self.assertNotEqual(result.returncode, 0, name)
-                    self.assertTrue((result.stdout + result.stderr).strip(), "failure needs a diagnostic")
+                    self.assertNotEqual(result.returncode, 0, name + "\n" + describe(result))
+                    self.assertTrue((result.stdout + result.stderr).strip(),
+                                    "failure needs a diagnostic\n" + describe(result))
             for bad_line in ("{broken json", ""):
                 with self.subTest(line=bad_line):
                     path.write_text(json.dumps(self.records[0]) + "\n" + bad_line + "\n")
-                    self.assertNotEqual(self.validate_file(path).returncode, 0)
+                    result = self.validate_file(path)
+                    self.assertNotEqual(result.returncode, 0, describe(result))
             missing = Path(directory) / "missing.jsonl"
-            self.assertNotEqual(self.validate_file(missing).returncode, 0)
+            result = self.validate_file(missing)
+            self.assertNotEqual(result.returncode, 0, describe(result))
 
     def test_readme_documents_validation(self):
         text = (DATASET / "README.md").read_text()

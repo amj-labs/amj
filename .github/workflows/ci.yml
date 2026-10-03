@@ -20,17 +20,21 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Check formatting
-        run: cargo fmt --all -- --check
+      - name: Run workspace checks with logs
+        run: python3 tests/run.py rust
 
-      - name: Check workspace
-        run: cargo check --workspace
+      - name: Test logging infrastructure
+        if: always()
+        run: python3 tests/run.py infra
 
-      - name: Clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
-
-      - name: Run tests
-        run: cargo test --workspace
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs-rust-${{ github.run_attempt }}
+          path: logs/tests/
+          retention-days: 7
+          if-no-files-found: warn
 
   week1:
     name: Week 1 / ${{ matrix.suite }}
@@ -52,7 +56,16 @@ jobs:
           python-version: '3.12'
 
       - name: Install acceptance-test dependencies
-        run: python -m pip install -r tests/week1/requirements.txt
+        run: python -m pip install -r tests/requirements.txt
 
       - name: Run completion gate
-        run: python tests/week1/run.py ${{ matrix.suite }}
+        run: python tests/run.py ${{ matrix.suite }} --week 1
+
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs-week1-${{ matrix.suite }}-${{ github.run_attempt }}
+          path: logs/tests/
+          retention-days: 7
+          if-no-files-found: warn

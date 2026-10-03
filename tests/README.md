@@ -1,4 +1,4 @@
-# Week 1 completion tests
+# Acceptance tests
 
 These are executable completion contracts for SYS-001, SEC-001, and ML-001.
 They intentionally fail against the initial scaffold. Missing files, missing
@@ -6,29 +6,43 @@ APIs, and unimplemented behavior are failures, never skips or expected passes.
 No production runtime, security primitives, threat model, schema, validator,
 or training examples are implemented here.
 
-Tests are grouped by domain:
+Tests are grouped by domain, then by week:
 
 ```text
-tests/week1/
-├── systems/       # CLI tests and Rust session tests
-├── security/      # Threat-model tests, Rust primitives, and test bridge
-├── ml/            # Schema, dataset, and validator tests
-├── integration/   # ML ↔ Security compatibility tests
-├── common.py      # Shared test helpers
-└── run.py         # Test runner used locally and in CI
+tests/
+├── systems/week1/         # CLI tests and Rust session tests
+├── security/week1/        # Threat model, Rust primitives, and test bridge
+├── ml/week1/              # Schema, dataset, and validator tests
+├── integration/week1/     # ML ↔ Security compatibility tests
+├── infrastructure/week1/  # Logging and runner regression tests
+├── common.py              # Shared test helpers
+├── requirements.txt       # Python test dependencies
+└── run.py                 # Test runner used locally and in CI
 ```
 
 Run from the repository root (Linux, Rust stable, Python 3.12+):
 
 ```bash
-python3 -m pip install -r tests/week1/requirements.txt
-python3 tests/week1/run.py sys
-python3 tests/week1/run.py sec
-python3 tests/week1/run.py ml
-python3 tests/week1/run.py ml-sec
+python3 -m pip install -r tests/requirements.txt
+python3 tests/run.py sys
+python3 tests/run.py sec
+python3 tests/run.py ml
+python3 tests/run.py ml-sec
 ```
 
-Run everything with `python3 tests/week1/run.py all`. Normal Rust checks remain:
+Week 1 is the default; `--week 1` can be specified explicitly. It is currently
+the only configured week. New weeks should add domain subdirectories and runner
+entries when their real contracts are defined.
+
+Run everything, including workspace checks and logging regression tests, with
+`python3 tests/run.py all`. These can also run separately:
+
+```bash
+python3 tests/run.py rust
+python3 tests/run.py infra
+```
+
+Normal Rust commands remain available:
 
 ```bash
 cargo fmt --all -- --check
@@ -43,6 +57,51 @@ The matrix will remain red until the corresponding tasks are implemented;
 passing the original workspace checks alone does not mean a Week 1 task is done.
 An individual task can complete once its own gate passes; ML ↔ Security becomes
 a shared completion requirement once both sides are available.
+
+## Diagnosing failures
+
+Each invocation prints the exact log directory, under ignored `logs/tests/`.
+Runs have separate timestamped directories, so a rerun does not overwrite the
+previous failure. Each directory contains:
+
+- A numbered `.log` file per step, with the exact command, working directory,
+  UTC start time, combined stdout/stderr, exit code, result, and duration.
+- `summary.md`: a compact table of steps and their results.
+- `summary.json`: the same results in a structured format, plus the Git commit,
+  Python version, and platform. The commit identifies HEAD; local uncommitted
+  changes can still affect the result.
+
+Result labels are `PASS`, `FAIL`, `ERROR` (command could not start), `TIMEOUT`,
+or `BLOCKED` (a prerequisite build failed). Every result other than `PASS` makes
+the suite return nonzero. Independent steps still run after a failure; dependent
+tests do not execute an old binary after a failed build.
+An empty unittest discovery also fails, so a bad path cannot silently turn green.
+
+Python tests run verbosely, showing test names and assertion tracebacks.
+Subprocess assertions include the command, exit code, stdout, and stderr.
+Dataset failures identify the source line and example ID; compatibility tests
+also identify the field and capability/risk value. Rust tests use `--nocapture`
+and `RUST_BACKTRACE=1` so panic output and stack traces are preserved.
+
+Start with `summary.md`, then open the log for the first failing prerequisite.
+For example, if `bridge-build` is `FAIL` and `compatibility-tests` is `BLOCKED`,
+fix the compiler error in `01-bridge-build.log` before investigating the dataset.
+Logs provide evidence of the failure; a human still determines its root cause.
+
+The default timeout is 180 seconds per step. A timeout preserves output already
+written and terminates the step's Linux process group. Adjust when necessary:
+
+```bash
+python3 tests/run.py sys --week 1 --timeout 300
+python3 tests/run.py ml --log-dir /tmp/amj-test-logs
+```
+
+In GitHub Actions, output is grouped by step and the job summary includes the
+result table. Logs are uploaded with `if: always()` as `test-logs-rust-*` and
+`test-logs-week1-<suite>-*`, retained for seven days. Open the workflow run in the
+Actions tab, inspect its summary, then download the relevant artifact. A failed
+test stays failed even if log upload succeeds. If setup fails before the runner
+starts, use that setup step's GitHub log; no test artifact may exist yet.
 
 ## SYS-001
 
@@ -60,7 +119,7 @@ amj_runtime::run(&str, &[&str]) -> Result<Session, ...>
 Session: id, command, args, started_at, ended_at, exit_status
 ```
 
-Adapt the calls/field access in `systems/tests/session.rs` to the chosen public
+Adapt the calls/field access in `systems/week1/tests/session.rs` to the chosen public
 API as part of SYS-001. Preserve every behavioral assertion and test the real
 runtime; do not replace it with a fake or remove the test. Use SystemTime or
 adapt the timestamp comparisons to the actual clock type. The CLI black-box
@@ -73,7 +132,7 @@ action/resource identity; checks four distinct decisions and distinct risk
 levels; and exercises the test-only wire adapter's rejection cases. Nothing
 asserts actual hard-deny enforcement, which is outside this ticket.
 
-`security/src/lib.rs` and `security/tests/primitives.rs` use reference enum and
+`security/week1/src/lib.rs` and `security/week1/tests/primitives.rs` use reference enum and
 field names. Adapt their constructors/accessors to SEC-001's chosen types while
 preserving assertions. This deliberately leaves production type design to the
 engineer. The bridge must construct actual `amj_core` types, not just check a
@@ -151,8 +210,8 @@ claim policy enforcement or model accuracy.
 When changing acceptance Rust code, format and lint its separate workspaces:
 
 ```bash
-cargo fmt --manifest-path tests/week1/systems/Cargo.toml -- --check
-cargo fmt --manifest-path tests/week1/security/Cargo.toml -- --check
-cargo clippy --manifest-path tests/week1/systems/Cargo.toml --all-targets -- -D warnings
-cargo clippy --manifest-path tests/week1/security/Cargo.toml --all-targets -- -D warnings
+cargo fmt --manifest-path tests/systems/week1/Cargo.toml -- --check
+cargo fmt --manifest-path tests/security/week1/Cargo.toml -- --check
+cargo clippy --manifest-path tests/systems/week1/Cargo.toml --all-targets -- -D warnings
+cargo clippy --manifest-path tests/security/week1/Cargo.toml --all-targets -- -D warnings
 ```
