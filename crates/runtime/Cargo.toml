@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 amj-core = { path = "../core" }
+uuid = { version = "1", features = ["v4"] }
